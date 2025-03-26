@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Squared Animation (Symbols Dissolve)</title>
+    <title>AI Squared Animation with Login</title>
     <style>
         /* Import Roboto Mono font */
         @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400&display=swap');
@@ -15,6 +15,9 @@
             --glow-color-end: #e0e0e0;
             --flash-color: #ffffff;
             --text-color: #cccccc;
+            --input-bg: #1a1a2a;
+            --input-border: #444455;
+            --input-text: #e0e0e0;
 
             /* Animation Timings */
             --anim-duration-enter: 2.5s;
@@ -22,6 +25,8 @@
             --anim-duration-symbol-appear: 0.8s;
             --anim-duration-text-appear: 1s;
             --anim-delay-text: 1.2s; /* Delay AFTER symbol starts appearing */
+            --anim-duration-login-appear: 0.7s; /* Duration for login fade-in */
+            --anim-delay-login: 0.5s; /* Delay AFTER text finishes appearing */
             --anim-duration-shimmer: 3s;
             --anim-duration-color-shift: 10s;
             --fade-out-duration: 0.3s; /* Duration for AI/IA fade out */
@@ -35,15 +40,29 @@
         }
 
         #animation-container {
-            position: relative; width: 80vw; max-width: 600px; height: 300px;
-            display: flex; justify-content: center; align-items: center;
+            position: relative; width: 80vw; max-width: 600px; height: auto; /* Adjust height */
+            display: flex; flex-direction: column; /* Stack elements vertically */
+            justify-content: center; align-items: center;
+            /* Added padding to give space for login fields if needed */
+            padding-bottom: 50px;
         }
+
+        /* Container for the main symbol animation area */
+        #symbol-area {
+             position: relative;
+             width: 100%; /* Take available width */
+             height: 300px; /* Maintain height for initial animations */
+             display: flex;
+             justify-content: center;
+             align-items: center;
+             margin-bottom: 20px; /* Space between symbol and text */
+        }
+
 
         .symbol {
             position: absolute; font-size: clamp(4em, 10vw, 6em); font-weight: bold;
             opacity: 0; will-change: transform, opacity, color, text-shadow;
             transform-origin: center center;
-            /* Smooth fade out transition when opacity is changed via JS */
             transition: opacity var(--fade-out-duration) ease-out;
         }
 
@@ -71,12 +90,13 @@
 
         /* --- Merge Effect (Step 6) --- */
         #merge-effect {
+            /* Positioned within symbol-area */
             position: absolute; width: 20px; height: 20px;
             background-color: var(--flash-color); border-radius: 50%;
             opacity: 0; transform: scale(0);
             box-shadow: 0 0 15px 8px var(--flash-color);
             will-change: transform, opacity, box-shadow;
-            display: none; /* Start hidden */
+            display: none;
         }
         @keyframes merge-flash {
             0% { opacity: 0.8; transform: scale(0.5); box-shadow: 0 0 20px 10px var(--flash-color); }
@@ -90,17 +110,16 @@
 
         /* --- Merged AI^2 Symbol (Step 7) --- */
         #merged-symbol {
+             /* Positioned within symbol-area */
             position: absolute; font-size: clamp(5em, 12vw, 7em); font-weight: bold;
             opacity: 0; transform: scale(0.8);
-            display: none; /* Hidden until .appear-active */
+            display: none;
              will-change: transform, opacity, color, text-shadow;
         }
         #merged-symbol sup {
             font-size: 0.6em; vertical-align: super; margin-left: 0.05em;
             font-weight: normal; line-height: 0; position: relative; top: -0.1em;
         }
-
-        /* Class added by JS for AI^2 appearance and effects (Step 7 & 8) */
         .appear-active {
             display: inline-block !important;
             animation:
@@ -123,12 +142,14 @@
 
         /* --- Final Text "AI SQUARED" (Step 9 & 10) --- */
         #final-text {
-            position: absolute; bottom: clamp(-80px, -15vh, -60px); left: 0; right: 0;
-            text-align: center; font-family: 'Roboto Mono', monospace; /* Step 10 Font */
+            /* Positioned relative to animation-container */
+            width: 100%; /* Take full width for centering text */
+            text-align: center; font-family: 'Roboto Mono', monospace;
             font-size: clamp(1em, 3vw, 1.5em); letter-spacing: 0.1em;
             opacity: 0; transform: translateY(25px);
             will-change: transform, opacity;
-            display: none; /* Hidden until .text-active */
+            display: none;
+            margin-top: 10px; /* Add space above */
         }
         .text-active {
             display: block !important;
@@ -140,16 +161,70 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* --- Login Area --- */
+        #login-area {
+            width: 100%;
+            max-width: 300px; /* Limit width of login inputs */
+            margin-top: 30px; /* Space below "AI SQUARED" */
+            opacity: 0; /* Start hidden */
+            display: none; /* Start hidden */
+            will-change: opacity;
+             /* Animation applied via JS adding a class */
+        }
+
+        /* Class added by JS to fade in login area */
+        .login-active {
+             display: block !important;
+             animation: login-fade-in var(--anim-duration-login-appear) ease-out forwards;
+             animation-delay: var(--anim-delay-login); /* Delay after text animation should conceptually end */
+        }
+
+        @keyframes login-fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+
+        #login-area input {
+            display: block; /* Stack inputs vertically */
+            width: 90%; /* Take most of the container width */
+            margin: 10px auto; /* Center block elements horizontally, add vertical space */
+            padding: 12px 15px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+            color: var(--input-text);
+            font-size: 1em;
+            font-family: 'Roboto Mono', monospace; /* Match text font */
+            box-sizing: border-box; /* Include padding/border in width */
+        }
+        #login-area input::placeholder { /* Style placeholder text */
+            color: #777788;
+            opacity: 1; /* Firefox */
+        }
+
+
     </style>
 </head>
 <body>
 
     <div id="animation-container">
-        <span id="ai-symbol" class="symbol">AI</span>
-        <span id="ia-symbol" class="symbol">IA</span>
-        <div id="merge-effect"></div>
-        <span id="merged-symbol" class="symbol">AI<sup>2</sup></span>
+        <!-- Area for the symbol animation -->
+        <div id="symbol-area">
+            <span id="ai-symbol" class="symbol">AI</span>
+            <span id="ia-symbol" class="symbol">IA</span>
+            <div id="merge-effect"></div>
+            <span id="merged-symbol" class="symbol">AI<sup>2</sup></span>
+        </div>
+
+        <!-- Text appearing below the symbol -->
         <div id="final-text">AI SQUARED</div>
+
+        <!-- Login fields appearing below the text -->
+        <div id="login-area">
+            <input type="text" id="member-login" placeholder="Member Login">
+            <input type="password" id="password" placeholder="Password">
+        </div>
     </div>
 
     <script>
@@ -161,51 +236,54 @@
             const mergeEffect = document.getElementById('merge-effect');
             const mergedSymbol = document.getElementById('merged-symbol');
             const finalText = document.getElementById('final-text');
+            const loginArea = document.getElementById('login-area'); // Get login area
 
             let aiFinished = false;
             let iaFinished = false;
             let mergeTriggered = false;
+            let textFinished = false; // Flag for text animation
 
-            // Function to trigger the merge sequence (Step 6 Start)
+            // Function to trigger the merge sequence
             function triggerMerge() {
                 if (mergeTriggered) return;
                 mergeTriggered = true;
                 // console.log("Triggering merge sequence...");
-
-                // Start fading out initial symbols using CSS transition
                 aiSymbol.style.opacity = '0';
                 iaSymbol.style.opacity = '0';
-
-                // Setup listener for flash animation end
-                // console.log("Attaching animationend listener to merge effect.");
                 mergeEffect.addEventListener('animationend', handleMergeFlashEnd, { once: true });
-
-                // Start the flash animation (Step 6)
-                // console.log("Adding .flash-active class to merge effect.");
                 mergeEffect.classList.add('flash-active');
             }
 
             // Function called AFTER merge flash animation ends
             function handleMergeFlashEnd() {
                 // console.log("Merge flash animation ended.");
-
-                // --- Hide original symbols completely ---
-                // console.log("Hiding original AI and IA symbols (display: none).");
-                aiSymbol.style.display = 'none'; // Remove from layout
-                iaSymbol.style.display = 'none'; // Remove from layout
-
-                // Hide the flash effect element
+                aiSymbol.style.display = 'none';
+                iaSymbol.style.display = 'none';
                 mergeEffect.style.display = 'none';
 
-                // --- Trigger final steps ---
-                // Show merged symbol (AI^2) (Step 7 & 8)
-                // console.log("Adding .appear-active class to merged symbol.");
+                // Show merged symbol (AI^2)
                 mergedSymbol.classList.add('appear-active');
+                // console.log("Adding .appear-active class to merged symbol.");
 
-                // Make final text ("AI SQUARED") ready (Step 9 & 10)
-                // console.log("Adding .text-active class to final text.");
+                // Make final text ("AI SQUARED") ready
                 finalText.classList.add('text-active');
+                // console.log("Adding .text-active class to final text.");
+
+                // --- Add listener for text animation end ---
+                // console.log("Attaching animationend listener to final text.");
+                finalText.addEventListener('animationend', handleTextEnd, { once: true });
             }
+
+             // Function called AFTER final text animation ends
+             function handleTextEnd() {
+                if (textFinished) return; // Prevent multiple triggers
+                textFinished = true;
+                // console.log("Final text animation ended.");
+
+                // --- Make login area appear ---
+                // console.log("Adding .login-active class to login area.");
+                loginArea.classList.add('login-active');
+             }
 
 
             // --- Setup Initial Event Listeners ---
@@ -221,15 +299,34 @@
                 if (aiFinished) triggerMerge();
             }, { once: true });
 
-            // --- Safety Fallback ---
-            const safetyTimeoutDuration = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--anim-duration-enter')) * 1000 + 500;
+            // --- Safety Fallbacks ---
+            // Fallback for merge trigger
+            const safetyTimeoutMerge = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--anim-duration-enter')) * 1000 + 500;
             setTimeout(() => {
                 if (!mergeTriggered) {
-                    // console.warn("Safety fallback: Triggering merge sequence via timeout.");
-                    aiFinished = true; iaFinished = true; // Assume finished
+                    // console.warn("Safety fallback (Merge): Triggering merge sequence via timeout.");
+                    aiFinished = true; iaFinished = true;
                     triggerMerge();
                 }
-            }, safetyTimeoutDuration);
+            }, safetyTimeoutMerge);
+
+             // Fallback for login trigger (calculate total expected time + buffer)
+             // MergeFlash + SymbolAppear + TextDelay + TextAppear + LoginDelay + Buffer
+            const textAnimEndTime = (
+                parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--anim-duration-merge')) +
+                parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--anim-duration-symbol-appear')) +
+                parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--anim-delay-text')) +
+                parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--anim-duration-text-appear'))
+             ) * 1000;
+            const safetyTimeoutLogin = safetyTimeoutMerge + textAnimEndTime + 500; // Base off merge fallback + subsequent times
+
+            setTimeout(() => {
+                 if (mergeTriggered && !textFinished) { // Only run if merge happened but text didn't finish
+                    // console.warn("Safety fallback (Login): Triggering login fields via timeout.");
+                    handleTextEnd(); // Force call the handler
+                 }
+            }, safetyTimeoutLogin);
+
 
             // console.log("Initial script setup complete. Waiting for animations...");
         });
