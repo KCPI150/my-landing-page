@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Squared Animation (Symbols Dissolve)</title>
+    <style>
+        /* Import Roboto Mono font */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400&display=swap');
+
+        :root {
+            --dark-bg: #0a0a1a;
+            --glow-color-start: #00ffff;
+            --glow-color-mid: #8a2be2;
+            --glow-color-end: #e0e0e0;
+            --flash-color: #ffffff;
+            --text-color: #cccccc;
+
+            /* Animation Timings */
+            --anim-duration-enter: 2.5s;
+            --anim-duration-merge: 0.5s;
+            --anim-duration-symbol-appear: 0.8s;
+            --anim-duration-text-appear: 1s;
+            --anim-delay-text: 1.2s; /* Delay AFTER symbol starts appearing */
+            --anim-duration-shimmer: 3s;
+            --anim-duration-color-shift: 10s;
+            --fade-out-duration: 0.3s; /* Duration for AI/IA fade out */
+        }
+
+        body {
+            margin: 0; padding: 0; background-color: var(--dark-bg);
+            color: var(--text-color); font-family: 'Arial', sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; overflow: hidden;
+        }
+
+        #animation-container {
+            position: relative; width: 80vw; max-width: 600px; height: 300px;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .symbol {
+            position: absolute; font-size: clamp(4em, 10vw, 6em); font-weight: bold;
+            opacity: 0; will-change: transform, opacity, color, text-shadow;
+            transform-origin: center center;
+            /* Smooth fade out transition when opacity is changed via JS */
+            transition: opacity var(--fade-out-duration) ease-out;
+        }
+
+        /* --- AI Symbol --- */
+        #ai-symbol {
+            transform: translateX(-150%) scale(0.7); opacity: 0;
+            animation: ai-enter var(--anim-duration-enter) ease-out forwards;
+        }
+        @keyframes ai-enter {
+            0% { transform: translateX(-150%) scale(0.7); opacity: 0; }
+            40% { opacity: 1; }
+            100% { transform: translateX(-15%) scale(1.3); opacity: 1; }
+        }
+
+        /* --- IA Symbol --- */
+        #ia-symbol {
+            transform: translateX(150%) scale(0.7); opacity: 0;
+            animation: ia-enter var(--anim-duration-enter) ease-out forwards;
+        }
+        @keyframes ia-enter {
+            0% { transform: translateX(150%) scale(0.7); opacity: 0; }
+            40% { opacity: 1; }
+            100% { transform: translateX(15%) scale(1.3); opacity: 1; }
+        }
+
+        /* --- Merge Effect (Step 6) --- */
+        #merge-effect {
+            position: absolute; width: 20px; height: 20px;
+            background-color: var(--flash-color); border-radius: 50%;
+            opacity: 0; transform: scale(0);
+            box-shadow: 0 0 15px 8px var(--flash-color);
+            will-change: transform, opacity, box-shadow;
+            display: none; /* Start hidden */
+        }
+        @keyframes merge-flash {
+            0% { opacity: 0.8; transform: scale(0.5); box-shadow: 0 0 20px 10px var(--flash-color); }
+            50% { opacity: 1; transform: scale(2.5); box-shadow: 0 0 50px 30px var(--flash-color); }
+            100% { opacity: 0; transform: scale(0); box-shadow: 0 0 10px 5px var(--flash-color); }
+        }
+        .flash-active {
+            display: block !important;
+            animation: merge-flash var(--anim-duration-merge) ease-in-out forwards;
+        }
+
+        /* --- Merged AI^2 Symbol (Step 7) --- */
+        #merged-symbol {
+            position: absolute; font-size: clamp(5em, 12vw, 7em); font-weight: bold;
+            opacity: 0; transform: scale(0.8);
+            display: none; /* Hidden until .appear-active */
+             will-change: transform, opacity, color, text-shadow;
+        }
+        #merged-symbol sup {
+            font-size: 0.6em; vertical-align: super; margin-left: 0.05em;
+            font-weight: normal; line-height: 0; position: relative; top: -0.1em;
+        }
+
+        /* Class added by JS for AI^2 appearance and effects (Step 7 & 8) */
+        .appear-active {
+            display: inline-block !important;
+            animation:
+                symbol-appear var(--anim-duration-symbol-appear) ease-out forwards,
+                symbol-shimmer var(--anim-duration-shimmer) ease-in-out infinite alternate,
+                symbol-color-shift var(--anim-duration-color-shift) linear infinite;
+        }
+        @keyframes symbol-appear {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes symbol-shimmer {
+            from { text-shadow: 0 0 6px rgba(255, 255, 255, 0.5), 0 0 12px var(--glow-color-start), 0 0 20px var(--glow-color-start); }
+            to { text-shadow: 0 0 10px rgba(255, 255, 255, 0.7), 0 0 20px var(--glow-color-mid), 0 0 35px var(--glow-color-mid); }
+        }
+        @keyframes symbol-color-shift {
+            0%   { color: var(--glow-color-start); } 33% { color: var(--glow-color-mid); }
+            66%  { color: var(--glow-color-end); } 100% { color: var(--glow-color-start); }
+        }
+
+        /* --- Final Text "AI SQUARED" (Step 9 & 10) --- */
+        #final-text {
+            position: absolute; bottom: clamp(-80px, -15vh, -60px); left: 0; right: 0;
+            text-align: center; font-family: 'Roboto Mono', monospace; /* Step 10 Font */
+            font-size: clamp(1em, 3vw, 1.5em); letter-spacing: 0.1em;
+            opacity: 0; transform: translateY(25px);
+            will-change: transform, opacity;
+            display: none; /* Hidden until .text-active */
+        }
+        .text-active {
+            display: block !important;
+            animation: text-fade-in var(--anim-duration-text-appear) ease-out forwards;
+            animation-delay: var(--anim-delay-text);
+        }
+        @keyframes text-fade-in {
+            from { opacity: 0; transform: translateY(25px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="animation-container">
+        <span id="ai-symbol" class="symbol">AI</span>
+        <span id="ia-symbol" class="symbol">IA</span>
+        <div id="merge-effect"></div>
+        <span id="merged-symbol" class="symbol">AI<sup>2</sup></span>
+        <div id="final-text">AI SQUARED</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // console.log("DOM Loaded. Setting up animation.");
+
+            const aiSymbol = document.getElementById('ai-symbol');
+            const iaSymbol = document.getElementById('ia-symbol');
+            const mergeEffect = document.getElementById('merge-effect');
+            const mergedSymbol = document.getElementById('merged-symbol');
+            const finalText = document.getElementById('final-text');
+
+            let aiFinished = false;
+            let iaFinished = false;
+            let mergeTriggered = false;
+
+            // Function to trigger the merge sequence (Step 6 Start)
+            function triggerMerge() {
+                if (mergeTriggered) return;
+                mergeTriggered = true;
+                // console.log("Triggering merge sequence...");
+
+                // Start fading out initial symbols using CSS transition
+                aiSymbol.style.opacity = '0';
+                iaSymbol.style.opacity = '0';
+
+                // Setup listener for flash animation end
+                // console.log("Attaching animationend listener to merge effect.");
+                mergeEffect.addEventListener('animationend', handleMergeFlashEnd, { once: true });
+
+                // Start the flash animation (Step 6)
+                // console.log("Adding .flash-active class to merge effect.");
+                mergeEffect.classList.add('flash-active');
+            }
+
+            // Function called AFTER merge flash animation ends
+            function handleMergeFlashEnd() {
+                // console.log("Merge flash animation ended.");
+
+                // --- Hide original symbols completely ---
+                // console.log("Hiding original AI and IA symbols (display: none).");
+                aiSymbol.style.display = 'none'; // Remove from layout
+                iaSymbol.style.display = 'none'; // Remove from layout
+
+                // Hide the flash effect element
+                mergeEffect.style.display = 'none';
+
+                // --- Trigger final steps ---
+                // Show merged symbol (AI^2) (Step 7 & 8)
+                // console.log("Adding .appear-active class to merged symbol.");
+                mergedSymbol.classList.add('appear-active');
+
+                // Make final text ("AI SQUARED") ready (Step 9 & 10)
+                // console.log("Adding .text-active class to final text.");
+                finalText.classList.add('text-active');
+            }
+
+
+            // --- Setup Initial Event Listeners ---
+            aiSymbol.addEventListener('animationend', () => {
+                // console.log("AI entrance animation finished.");
+                aiFinished = true;
+                if (iaFinished) triggerMerge();
+            }, { once: true });
+
+            iaSymbol.addEventListener('animationend', () => {
+                // console.log("IA entrance animation finished.");
+                iaFinished = true;
+                if (aiFinished) triggerMerge();
+            }, { once: true });
+
+            // --- Safety Fallback ---
+            const safetyTimeoutDuration = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--anim-duration-enter')) * 1000 + 500;
+            setTimeout(() => {
+                if (!mergeTriggered) {
+                    // console.warn("Safety fallback: Triggering merge sequence via timeout.");
+                    aiFinished = true; iaFinished = true; // Assume finished
+                    triggerMerge();
+                }
+            }, safetyTimeoutDuration);
+
+            // console.log("Initial script setup complete. Waiting for animations...");
+        });
+    </script>
+
+</body>
+</html>
